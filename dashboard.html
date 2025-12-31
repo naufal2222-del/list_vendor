@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Vendor App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{
+  box-sizing:border-box;
+  font-family:'Segoe UI',sans-serif;
+}
+body{
+  margin:0;
+  background:#f1f3f6;
+}
+
+/* ===== LOGIN ===== */
+.login{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.login-box{
+  background:#fff;
+  width:320px;
+  padding:30px;
+  border-radius:12px;
+  box-shadow:0 10px 25px rgba(0,0,0,.2);
+}
+.login-box h2{
+  text-align:center;
+  margin-bottom:20px;
+}
+.login-box input,
+.login-box button{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+}
+.login-box button{
+  background:#2563eb;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+/* ===== APP ===== */
+.app{
+  display:none;
+  min-height:100vh;
+}
+.app-inner{
+  display:flex;
+  min-height:100vh;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+  width:230px;
+  background:#1f2937;
+  color:#fff;
+  padding:20px;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+.sidebar h3{
+  text-align:center;
+  margin-bottom:25px;
+}
+.sidebar button{
+  width:100%;
+  padding:12px;
+  margin-bottom:12px;
+  background:#374151;
+  border:none;
+  color:#fff;
+  border-radius:8px;
+  cursor:pointer;
+}
+.sidebar button:hover{
+  background:#4b5563;
+}
+.logout{
+  background:#dc2626!important;
+  margin-top:auto; /* ⬅️ nempel bawah */
+}
+
+/* ===== CONTENT ===== */
+.content{
+  flex:1;
+  padding:30px;
+}
+.page{
+  display:none;
+}
+.page.active{
+  display:block;
+}
+
+/* ===== CARD ===== */
+.card{
+  position:relative;
+  background:#fff;
+  padding:18px;
+  border-radius:12px;
+  margin-bottom:15px;
+  box-shadow:0 6px 15px rgba(0,0,0,.1);
+}
+.card strong{
+  font-size:16px;
+}
+
+/* DELETE BUTTON */
+.delete-btn{
+  position:absolute;
+  top:12px;
+  right:12px;
+  background:#ef4444;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+  padding:6px 10px;
+  cursor:pointer;
+  font-size:12px;
+}
+.delete-btn:hover{
+  background:#b91c1c;
+}
+
+/* ===== FORM ===== */
+.form-group input,
+.form-group select{
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+}
+.form-group button{
+  width:100%;
+  padding:12px;
+  background:#10b981;
+  border:none;
+  color:#fff;
+  border-radius:6px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div class="login" id="loginPage">
+  <div class="login-box">
+    <h2>Login Admin</h2>
+    <input id="username" placeholder="User ID">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="appPage">
+<div class="app-inner">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h3>Vendor App</h3>
+    <button onclick="showPage('electric')">Vendor Electric</button>
+    <button onclick="showPage('mechanic')">Vendor Mechanic</button>
+    <button onclick="showPage('upload')">Upload Vendor</button>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <div id="electric" class="page active">
+      <h2>List Vendor Electric</h2>
+      <div id="electricList"></div>
+    </div>
+
+    <div id="mechanic" class="page">
+      <h2>List Vendor Mechanic</h2>
+      <div id="mechanicList"></div>
+    </div>
+
+    <div id="upload" class="page">
+      <h2>Upload Vendor</h2>
+      <div class="form-group">
+        <input id="vendorName" placeholder="Nama Vendor">
+        <input id="salesName" placeholder="Nama Sales">
+        <input id="waNumber" placeholder="Nomor WhatsApp">
+        <select id="category">
+          <option value="">Pilih Kategori</option>
+          <option value="electric">Electric</option>
+          <option value="mechanic">Mechanic</option>
+        </select>
+        <button onclick="addVendor()">Simpan Vendor</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+const USER="admin", PASS="12345";
+let vendors = JSON.parse(localStorage.getItem("vendors")) || [];
+let isLogin=false, timer;
+
+/* LOGIN */
+function login(){
+  if(username.value===USER && password.value===PASS){
+    isLogin=true;
+    loginPage.style.display="none";
+    appPage.style.display="block";
+    startTimer();
+  }else{
+    alert("User ID atau Password salah!");
+  }
+}
+
+/* LOGOUT */
+function logout(){
+  isLogin=false;
+  appPage.style.display="none";
+  loginPage.style.display="flex";
+  clearTimeout(timer);
+}
+
+/* AUTO LOGOUT 1 MENIT */
+function startTimer(){
+  resetTimer();
+  ["mousemove","keydown","click","scroll"].forEach(e=>{
+    document.addEventListener(e,resetTimer);
+  });
+}
+function resetTimer(){
+  clearTimeout(timer);
+  timer=setTimeout(()=>{ if(isLogin) logout(); },60000);
+}
+window.addEventListener("beforeunload",()=>{ if(isLogin) logout(); });
+
+/* PAGE NAV */
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+/* ADD VENDOR */
+function addVendor(){
+  const v={
+    name:vendorName.value,
+    sales:salesName.value,
+    wa:waNumber.value,
+    cat:category.value
+  };
+  if(!v.name||!v.sales||!v.wa||!v.cat){
+    alert("Lengkapi data!");
+    return;
+  }
+  vendors.push(v);
+  localStorage.setItem("vendors",JSON.stringify(vendors));
+  vendorName.value=salesName.value=waNumber.value="";
+  category.value="";
+  render();
+  showPage(v.cat);
+}
+
+/* DELETE VENDOR */
+function deleteVendor(index){
+  if(!confirm("Hapus vendor ini?")) return;
+  vendors.splice(index,1);
+  localStorage.setItem("vendors",JSON.stringify(vendors));
+  render();
+}
+
+/* RENDER */
+function render(){
+  electricList.innerHTML="";
+  mechanicList.innerHTML="";
+  vendors.forEach((v,i)=>{
+    const card=`
+      <div class="card">
+        <button class="delete-btn" onclick="deleteVendor(${i})">Hapus</button>
+        <strong>${v.name}</strong><br>
+        Sales: ${v.sales}<br>
+        WA: <a href="https://wa.me/${v.wa}" target="_blank">${v.wa}</a>
+      </div>`;
+    v.cat==="electric"
+      ? electricList.innerHTML+=card
+      : mechanicList.innerHTML+=card;
+  });
+}
+render();
+</script>
+
+</body>
+</html>
